@@ -6,14 +6,32 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-// import { createContact } from "@/actions";
+import { createContact } from "@/actions";
 const ContactForm = () => {
 
   const [isSubmitting , setIsSubmitting] = useState(false);
   const [message , setMessage] = useState("")
 
 
-  
+  async function onSubmit(formData) {
+    setIsSubmitting(true)
+    setMessage("")
+
+    const result = await createContact(formData);
+    console.log(result)
+    if(result.success){
+      setMessage("Message sent successfully!")
+
+      const form = document.getElementById("contact-form")
+      form.reset()
+    }
+    else{
+        setMessage(result.error || "Something went wrong")
+    }
+
+    setIsSubmitting(false)
+
+  }
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -22,7 +40,13 @@ const ContactForm = () => {
       </CardHeader>
       <CardContent>
 
-  
+    {
+      message && (
+         <div className={`mb-6 p-4 rounded ${message.includes("success") ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"}`}>
+            {message}
+          </div>
+      )
+    }
 
          <form id="contact-form" action={onSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
