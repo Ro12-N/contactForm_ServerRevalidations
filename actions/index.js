@@ -2,6 +2,8 @@
 
 import dbConnect from "@/lib/db";
 import { Contact } from "@/models/Contact";
+import { unstable_cache } from "next/cache";
+import { revalidateTag } from "next/cache";
 
 export async function createContact(formData) {
   try {
@@ -23,7 +25,10 @@ export async function createContact(formData) {
       email: email.trim().toLowerCase(),
       subject: subject.trim(),
       message: message.trim(),
+      status: "new", // ✅ ADDED (FIX 1)
     });
+
+    revalidateTag("contact-stats", "max"); // ✅ ADDED (FIX 2)
 
     return {
       success: true,
@@ -37,4 +42,64 @@ export async function createContact(formData) {
       error: "Something went wrong. Please try again.",
     };
   }
+}
+
+export async function getContacts() {
+  try {
+    await dbConnect();
+    const contacts = await Contact.find({}).sort({ createdAt: -1 }).lean();
+
+    return contacts.map((contact) => ({
+      ...contact,
+      _id: contact._id.toString(),
+      status: contact.status || "new",
+      createdAt: contact.createdAt,
+      updatedAt: contact.updatedAt,
+    }));
+  } catch (error) {
+    console.error("Error fetching contacts:", error);
+    return [];
+  }
+}
+
+export async function updateContact(contactId, status) {
+  try {
+    console.log(status);
+    await dbConnect();
+    await Contact.findByIdAndUpdate(contactId, { status });
+
+    revalidateTag("contact-stats", "max"); // ✅ ALREADY CORRECT
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating contact status:", error);
+    return { success: false, error: "Failed to update status" };
+  }
+}
+
+export async function getContactStats() {
+  const getCachedStats = unstable_cache(
+    async () => {
+      await dbConnect();
+
+      const total = await Contact.countDocuments();
+
+      const newCount = await Contact.countDocuments({
+        $or: [
+          { status: "new" },
+          { status: { $exists: false } }, // ✅ ADDED (FIX 3)
+        ],
+      });
+
+      const readCount = await Contact.countDocuments({ status: "read" });
+
+      const repliedCount = await Contact.countDocuments({ status: "replied" });
+
+      return { total, newCount, readCount, repliedCount };
+    },
+    ["contact-stats"],
+    { tags: ["contact-stats"] }
+  );
+
+  return getCachedStats();
 }
