@@ -25,10 +25,10 @@ export async function createContact(formData) {
       email: email.trim().toLowerCase(),
       subject: subject.trim(),
       message: message.trim(),
-      status: "new", // ✅ ADDED (FIX 1)
+      status: "new", 
     });
 
-    revalidateTag("contact-stats", "max"); // ✅ ADDED (FIX 2)
+    revalidateTag("contact-stats", "max"); 
 
     return {
       success: true,
@@ -68,7 +68,7 @@ export async function updateContact(contactId, status) {
     await dbConnect();
     await Contact.findByIdAndUpdate(contactId, { status });
 
-    revalidateTag("contact-stats", "max"); // ✅ ALREADY CORRECT
+    revalidateTag("contact-stats", "max"); 
 
     return { success: true };
   } catch (error) {
@@ -87,7 +87,7 @@ export async function getContactStats() {
       const newCount = await Contact.countDocuments({
         $or: [
           { status: "new" },
-          { status: { $exists: false } }, // ✅ ADDED (FIX 3)
+          { status: { $exists: false } },
         ],
       });
 

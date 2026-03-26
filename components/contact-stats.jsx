@@ -1,11 +1,13 @@
-import { getContactStats } from "@/actions";
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+"use server"
+import { getContactStats } from '@/actions'
+import React from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-const ContactStats = async () => {
-  const stats = await getContactStats();
+
+const ContactStats = async() => {
+    const stats = await getContactStats()
   return (
-    <div className="grid grid-cols-2 gap-4 mb-6 mt-5 md:grid-cols-4">
+   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 mt-5">
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">Total</CardTitle>
@@ -20,9 +22,7 @@ const ContactStats = async () => {
           <CardTitle className="text-sm font-medium">New</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-blue-600">
-            {stats.newCount}
-          </div>
+          <div className="text-2xl font-bold text-blue-600">{stats.newCount}</div>
         </CardContent>
       </Card>
 
@@ -44,7 +44,7 @@ const ContactStats = async () => {
         </CardContent>
       </Card>
     </div>
-  );
-};
+  )
+}
 
-export default ContactStats;
+export default ContactStats
